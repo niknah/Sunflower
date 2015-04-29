@@ -2,6 +2,7 @@ import os
 import gtk
 import gobject
 import fnmatch
+import urlparse
 
 from threading import Thread, Event
 from gui.input_dialog import OverwriteFileDialog, OverwriteDirectoryDialog, OperationError, QuestionOperationError
@@ -641,7 +642,7 @@ class CopyOperation(Operation):
 
 	def _scan_directory(self, directory, relative_path=None):
 		"""Recursively scan directory and populate list"""
-		source_path = self._source_path if relative_path is None else os.path.join(self._source_path, relative_path)
+		source_path = self._source_path if relative_path is None else urlparse.urljoin(self._source_path, relative_path)
 		try:
 			# try to get listing from directory
 			item_list = self._source.list_dir(directory, relative_to=source_path)
@@ -697,7 +698,7 @@ class CopyOperation(Operation):
 
 	def _create_directory(self, directory, relative_path=None):
 		"""Create specified directory"""
-		source_path = self._source_path if relative_path is None else os.path.join(self._source_path, relative_path)
+		source_path = self._source_path if relative_path is None else urlparse.urljoin(self._source_path, relative_path)
 		file_stat = self._source.get_stat(directory, relative_to=source_path)
 		mode = file_stat.mode if self._options[Option.SET_MODE] else 0755
 
@@ -739,7 +740,7 @@ class CopyOperation(Operation):
 	def _copy_file(self, file_name, relative_path=None):
 		"""Copy file content"""
 		can_procede = True
-		source_path = self._source_path if relative_path is None else os.path.join(self._source_path, relative_path)
+		source_path = self._source_path if relative_path is None else urlparse.urljoin(self._source_path, relative_path)
 		dest_file = file_name
 		sh = None
 		dh = None
@@ -1015,7 +1016,7 @@ class MoveOperation(CopyOperation):
 	def _move_file(self, file_name, relative_path=None):
 		"""Move specified file using provider rename method"""
 		can_procede = True
-		source_path = self._source_path if relative_path is None else os.path.join(self._source_path, relative_path)
+		source_path = self._source_path if relative_path is None else urlparse.urljoin(self._source_path, relative_path)
 		dest_file = file_name
 
 		# check if destination file exists
@@ -1027,7 +1028,7 @@ class MoveOperation(CopyOperation):
 
 				# get new name if user specified
 				if options[OverwriteOption.RENAME]:
-					dest_file = os.path.join(
+					dest_file = urlparse.urljoin(
 					                    os.path.dirname(file_name),
 					                    options[OverwriteOption.NEW_NAME]
 					                )
